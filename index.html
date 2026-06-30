@@ -127,6 +127,29 @@
   }
   .foundation-textarea::placeholder { color:#475569; }
 
+  /* ── Foundation Dropdown ── */
+  .foundation-select {
+    background: rgba(255,255,255,0.04);
+    border: 1.5px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #e2e8f0;
+    font-family: inherit;
+    outline: none;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 36px;
+    transition: border-color 0.2s;
+  }
+  .foundation-box.strength .foundation-select:focus { border-color: rgba(74,222,128,0.4); }
+  .foundation-box.opportunity .foundation-select:focus { border-color: rgba(245,158,11,0.4); }
+  .foundation-select option { background: #1e293b; color: #e2e8f0; }
+
   /* ── Summary ── */
   .summary {
     display: grid;
@@ -279,12 +302,30 @@
     <div class="foundation-box strength">
       <div class="foundation-label">⭐ Leadership Foundation</div>
       <div class="foundation-title">Strength</div>
-      <textarea class="foundation-textarea" placeholder="Enter leadership foundation strength…"></textarea>
+      <select class="foundation-select">
+        <option value="" disabled selected>Select a leadership foundation…</option>
+        <option>Show curiosity and care for your team</option>
+        <option>Prioritize time and presence with your team</option>
+        <option>Build complementary and aligned teams</option>
+        <option>Create and model a safe environment for feedback</option>
+        <option>Make results accessible and part of every day</option>
+        <option>Craft intentional moments for recognition and celebration</option>
+      </select>
+      <textarea class="foundation-textarea" placeholder="Add notes or context…"></textarea>
     </div>
     <div class="foundation-box opportunity">
       <div class="foundation-label">🎯 Leadership Foundation</div>
       <div class="foundation-title">Opportunity</div>
-      <textarea class="foundation-textarea" placeholder="Enter leadership foundation opportunity…"></textarea>
+      <select class="foundation-select">
+        <option value="" disabled selected>Select a leadership foundation…</option>
+        <option>Show curiosity and care for your team</option>
+        <option>Prioritize time and presence with your team</option>
+        <option>Build complementary and aligned teams</option>
+        <option>Create and model a safe environment for feedback</option>
+        <option>Make results accessible and part of every day</option>
+        <option>Craft intentional moments for recognition and celebration</option>
+      </select>
+      <textarea class="foundation-textarea" placeholder="Add notes or context…"></textarea>
     </div>
   </div>
 
@@ -505,6 +546,7 @@ function updateName() {
 function resetAll() {
   document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
   document.querySelectorAll('.foundation-textarea').forEach(ta => ta.value = '');
+  document.querySelectorAll('.foundation-select').forEach(sel => sel.selectedIndex = 0);
   updateSummary();
 }
 
