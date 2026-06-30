@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Talent Rating Tool</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
+    background: #07070f;
+    color: #e2e8f0;
+    min-height: 100vh;
+    padding: 32px 24px 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .container { width: 100%; max-width: 900px; }
+
+  .page-header {
+    background: linear-gradient(135deg, #0d0d1a 0%, #111827 60%, #0d1a2e 100%);
+    border-radius: 16px;
+    padding: 28px 36px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .page-header::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:3px;
+    background: linear-gradient(90deg, #3b82f6, #6366f1, #8b5cf6);
+    border-radius: 16px 16px 0 0;
+  }
+  .page-title { font-size:26px; font-weight:700; color:#f0f4ff; letter-spacing:-0.02em; margin-bottom:20px; }
+  .page-title span {
+    background: linear-gradient(90deg,#93c5fd,#a5b4fc);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  }
+
+  .setup-row { display:flex; gap:14px; align-items:flex-end; flex-wrap:wrap; }
+  .field-group { display:flex; flex-direction:column; gap:6px; flex:1; min-width:200px; }
+  .field-label { font-size:10px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#6366f1; }
+  .name-input {
+    background: rgba(255,255,255,0.05);
+    border: 1.5px solid rgba(99,102,241,0.3);
+    border-radius: 10px; padding: 10px 16px;
+    font-size: 15px; font-weight: 600;
+    color: #f0f4ff; font-family: inherit;
+    outline: none; transition: border-color 0.2s;
+  }
+  .name-input::placeholder { color:#475569; font-weight:400; }
+  .name-input:focus { border-color: rgba(99,102,241,0.7); }
+
+  .role-toggle { display:flex; gap:8px; }
+  .role-btn {
+    padding: 10px 20px; border-radius: 10px;
+    font-size: 13px; font-weight: 700;
+    cursor: pointer; font-family: inherit;
+    border: 1.5px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.04);
+    color: #64748b; transition: all 0.2s;
+  }
+  .role-btn.active-mgr { background:rgba(99,102,241,0.15); border-color:rgba(99,102,241,0.5); color:#a5b4fc; }
+  .role-btn.active-sr  { background:rgba(139,92,246,0.15); border-color:rgba(139,92,246,0.5); color:#c4b5fd; }
+
+  /* ── Leadership Foundation Boxes ── */
+  .foundation-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .foundation-box {
+    flex: 1;
+    background: linear-gradient(135deg, #0d0d1a 0%, #111827 60%, #0d1a2e 100%);
+    border-radius: 14px;
+    padding: 18px 20px;
+    border: 1px solid rgba(255,255,255,0.06);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .foundation-box.strength::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:3px;
+    background: linear-gradient(90deg, #4ade80, #22c55e);
+    border-radius: 14px 14px 0 0;
+  }
+  .foundation-box.opportunity::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:3px;
+    background: linear-gradient(90deg, #f59e0b, #f97316);
+    border-radius: 14px 14px 0 0;
+  }
+  .foundation-label {
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase;
+  }
+  .foundation-box.strength .foundation-label { color: #4ade80; }
+  .foundation-box.opportunity .foundation-label { color: #f59e0b; }
+
+  .foundation-title {
+    font-size: 15px; font-weight: 700;
+    color: #f0f4ff; margin-bottom: 2px;
+  }
+  .foundation-textarea {
+    background: rgba(255,255,255,0.04);
+    border: 1.5px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 13px;
+    color: #e2e8f0;
+    font-family: inherit;
+    outline: none;
+    resize: vertical;
+    min-height: 90px;
+    line-height: 1.6;
+    transition: border-color 0.2s;
+  }
+  .foundation-box.strength .foundation-textarea:focus {
+    border-color: rgba(74,222,128,0.4);
+  }
+  .foundation-box.opportunity .foundation-textarea:focus {
+    border-color: rgba(245,158,11,0.4);
+  }
+  .foundation-textarea::placeholder { color:#475569; }
+
+  /* ── Summary ── */
+  .summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .summary-card {
+    border-radius: 12px; padding: 14px 18px;
+    border: 1px solid rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.02);
+  }
+  .summary-card-title { font-size:10px; font-weight:800; letter-spacing:0.14em; text-transform:uppercase; margin-bottom:10px; }
+  .summary-card.tw .summary-card-title { color:#60a5fa; }
+  .summary-card.in .summary-card-title { color:#fb923c; }
+  .summary-card.re .summary-card-title { color:#34d399; }
+
+  .summary-pills { display:flex; gap:8px; margin-bottom:12px; }
+  .s-pill { flex:1; border-radius:8px; padding:7px 4px; text-align:center; border:1px solid; }
+  .s-pill-label { font-size:9px; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; }
+  .s-pill-count { font-size:22px; font-weight:800; line-height:1.1; margin-top:2px; }
+  .s-pill.ee { background:rgba(74,222,128,0.07); border-color:rgba(74,222,128,0.2); }
+  .s-pill.ae { background:rgba(129,140,248,0.07); border-color:rgba(129,140,248,0.2); }
+  .s-pill.em { background:rgba(249,168,212,0.07); border-color:rgba(249,168,212,0.2); }
+  .s-pill.ee .s-pill-label, .s-pill.ee .s-pill-count { color:#4ade80; }
+  .s-pill.ae .s-pill-label, .s-pill.ae .s-pill-count { color:#818cf8; }
+  .s-pill.em .s-pill-label, .s-pill.em .s-pill-count { color:#f9a8d4; }
+
+  .score-box {
+    border-radius: 10px; padding: 10px 14px;
+    display: flex; align-items: center; justify-content: space-between;
+    border: 1px solid rgba(255,255,255,0.07);
+    background: rgba(0,0,0,0.25);
+    transition: all 0.3s ease; min-height: 46px;
+  }
+  .score-box.rating-ee { background:rgba(74,222,128,0.1); border-color:rgba(74,222,128,0.35); }
+  .score-box.rating-ae { background:rgba(129,140,248,0.1); border-color:rgba(129,140,248,0.35); }
+  .score-box.rating-em { background:rgba(249,168,212,0.1); border-color:rgba(249,168,212,0.35); }
+  .score-left { display:flex; flex-direction:column; gap:2px; }
+  .score-label { font-size:9px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#475569; }
+  .score-rating { font-size:13px; font-weight:800; color:#475569; transition:color 0.3s; }
+  .score-box.rating-ee .score-rating { color:#4ade80; }
+  .score-box.rating-ae .score-rating { color:#818cf8; }
+  .score-box.rating-em .score-rating { color:#f9a8d4; }
+  .score-num { font-size:28px; font-weight:800; color:#334155; transition:color 0.3s; line-height:1; }
+  .score-box.rating-ee .score-num { color:#4ade80; }
+  .score-box.rating-ae .score-num { color:#818cf8; }
+  .score-box.rating-em .score-num { color:#f9a8d4; }
+  .score-scale { font-size:8.5px; color:#334155; margin-top:2px; font-style:italic; transition:color 0.3s; }
+  .score-box.rating-ee .score-scale { color:rgba(74,222,128,0.5); }
+  .score-box.rating-ae .score-scale { color:rgba(129,140,248,0.5); }
+  .score-box.rating-em .score-scale { color:rgba(249,168,212,0.5); }
+
+  .tab-nav { display:flex; gap:8px; }
+  .tab-btn {
+    padding: 9px 22px; border-radius: 999px;
+    font-size: 12px; font-weight: 700;
+    cursor: pointer; font-family: inherit;
+    border: 1.5px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.03);
+    color: #64748b; transition: all 0.2s;
+    letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .tab-btn.active-tw { background:rgba(59,130,246,0.15); border-color:rgba(59,130,246,0.4); color:#60a5fa; }
+  .tab-btn.active-in { background:rgba(249,115,22,0.15); border-color:rgba(249,115,22,0.4); color:#fb923c; }
+  .tab-btn.active-re { background:rgba(16,185,129,0.15); border-color:rgba(16,185,129,0.4); color:#34d399; }
+
+  .tab-panel { display:none; }
+  .tab-panel.visible { display:block; }
+
+  .section { border-radius:14px; margin-bottom:14px; border:1px solid; overflow:hidden; }
+  .section.ee { border-color:rgba(74,222,128,0.2); }
+  .section.ae { border-color:rgba(129,140,248,0.2); }
+  .section.em { border-color:rgba(249,168,212,0.2); }
+
+  .section-header { padding:12px 20px; display:flex; align-items:center; gap:12px; border-bottom:1px solid; }
+  .section.ee .section-header { background:rgba(74,222,128,0.07); border-color:rgba(74,222,128,0.15); }
+  .section.ae .section-header { background:rgba(129,140,248,0.07); border-color:rgba(129,140,248,0.15); }
+  .section.em .section-header { background:rgba(249,168,212,0.07); border-color:rgba(249,168,212,0.15); }
+
+  .section-badge { font-size:10px; font-weight:800; letter-spacing:0.12em; text-transform:uppercase; padding:3px 10px; border-radius:999px; border:1px solid; }
+  .section.ee .section-badge { background:rgba(74,222,128,0.12); border-color:rgba(74,222,128,0.35); color:#4ade80; }
+  .section.ae .section-badge { background:rgba(129,140,248,0.12); border-color:rgba(129,140,248,0.35); color:#818cf8; }
+  .section.em .section-badge { background:rgba(249,168,212,0.12); border-color:rgba(249,168,212,0.35); color:#f9a8d4; }
+
+  .section-title { font-size:14px; font-weight:700; color:#e2e8f0; }
+  .section-desc  { font-size:11px; color:#64748b; margin-left:auto; font-style:italic; }
+  .section-body  { padding:10px 20px; background:rgba(0,0,0,0.2); display:flex; flex-direction:column; gap:6px; }
+
+  .check-item {
+    display:flex; align-items:flex-start; gap:12px;
+    padding:7px 10px; border-radius:8px; cursor:pointer;
+    transition:background 0.15s; border:1px solid transparent;
+  }
+  .check-item:hover { background:rgba(255,255,255,0.03); }
+  .check-item input[type="checkbox"] { display:none; }
+  .check-box {
+    flex-shrink:0; width:17px; height:17px; border-radius:5px;
+    border:1.5px solid rgba(255,255,255,0.15); margin-top:2px;
+    display:flex; align-items:center; justify-content:center;
+    transition:all 0.16s; font-size:10px;
+  }
+  .check-item:hover .check-box { border-color:rgba(255,255,255,0.3); }
+  .check-text { font-size:12px; color:#94a3b8; line-height:1.55; transition:color 0.16s; }
+
+  .section.ee .check-item input:checked ~ .check-box { background:rgba(74,222,128,0.2); border-color:#4ade80; box-shadow:0 0 6px rgba(74,222,128,0.2); }
+  .section.ee .check-item input:checked ~ .check-box::after { content:'✓'; color:#4ade80; font-weight:900; }
+  .section.ee .check-item input:checked ~ .check-text { color:#d1fae5; }
+  .section.ee .check-item:has(input:checked) { background:rgba(74,222,128,0.05); border-color:rgba(74,222,128,0.15); }
+
+  .section.ae .check-item input:checked ~ .check-box { background:rgba(129,140,248,0.2); border-color:#818cf8; box-shadow:0 0 6px rgba(129,140,248,0.2); }
+  .section.ae .check-item input:checked ~ .check-box::after { content:'✓'; color:#818cf8; font-weight:900; }
+  .section.ae .check-item input:checked ~ .check-text { color:#e0e7ff; }
+  .section.ae .check-item:has(input:checked) { background:rgba(129,140,248,0.05); border-color:rgba(129,140,248,0.15); }
+
+  .section.em .check-item input:checked ~ .check-box { background:rgba(249,168,212,0.2); border-color:#f9a8d4; box-shadow:0 0 6px rgba(249,168,212,0.2); }
+  .section.em .check-item input:checked ~ .check-box::after { content:'✓'; color:#f9a8d4; font-weight:900; }
+  .section.em .check-item input:checked ~ .check-text { color:#fce7f3; }
+  .section.em .check-item:has(input:checked) { background:rgba(249,168,212,0.05); border-color:rgba(249,168,212,0.15); }
+
+  .btn { padding:7px 16px; border-radius:999px; font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; letter-spacing:0.06em; text-transform:uppercase; transition:all 0.2s; }
+  .btn-reset { background:rgba(99,102,241,0.12); border:1px solid rgba(99,102,241,0.3); color:#a5b4fc; }
+  .btn-reset:hover { background:rgba(99,102,241,0.22); }
+
+  .footer { margin-top:32px; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:rgba(148,163,184,0.25); text-align:center; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="page-header">
+    <div class="page-title">Talent <span>Rating Tool</span></div>
+    <div class="setup-row">
+      <div class="field-group">
+        <div class="field-label">Leader Name</div>
+        <input class="name-input" id="leaderName" type="text" placeholder="Enter leader name…" oninput="updateName()"/>
+      </div>
+      <div class="field-group" style="flex:0;">
+        <div class="field-label">Role</div>
+        <div class="role-toggle">
+          <button class="role-btn active-mgr" id="btn-mgr" onclick="setRole('manager')">Manager</button>
+          <button class="role-btn" id="btn-sr" onclick="setRole('senior')">Senior Manager</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leadership Foundation Boxes -->
+  <div class="foundation-row">
+    <div class="foundation-box strength">
+      <div class="foundation-label">⭐ Leadership Foundation</div>
+      <div class="foundation-title">Strength</div>
+      <textarea class="foundation-textarea" placeholder="Enter leadership foundation strength…"></textarea>
+    </div>
+    <div class="foundation-box opportunity">
+      <div class="foundation-label">🎯 Leadership Foundation</div>
+      <div class="foundation-title">Opportunity</div>
+      <textarea class="foundation-textarea" placeholder="Enter leadership foundation opportunity…"></textarea>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div class="summary">
+    <div class="summary-card tw">
+      <div class="summary-card-title">🤝 Teamwork</div>
+      <div class="summary-pills">
+        <div class="s-pill ee"><div class="s-pill-label">EE</div><div class="s-pill-count" id="s-tw-ee">0</div></div>
+        <div class="s-pill ae"><div class="s-pill-label">AE</div><div class="s-pill-count" id="s-tw-ae">0</div></div>
+        <div class="s-pill em"><div class="s-pill-label">EM</div><div class="s-pill-count" id="s-tw-em">0</div></div>
+      </div>
+      <div class="score-box" id="score-box-tw">
+        <div class="score-left">
+          <div class="score-label">Avg Score</div>
+          <div class="score-rating" id="score-rating-tw">—</div>
+          <div class="score-scale" id="score-scale-tw">Check boxes to calculate</div>
+        </div>
+        <div class="score-num" id="score-num-tw">—</div>
+      </div>
+    </div>
+    <div class="summary-card in">
+      <div class="summary-card-title">💡 Innovation</div>
+      <div class="summary-pills">
+        <div class="s-pill ee"><div class="s-pill-label">EE</div><div class="s-pill-count" id="s-in-ee">0</div></div>
+        <div class="s-pill ae"><div class="s-pill-label">AE</div><div class="s-pill-count" id="s-in-ae">0</div></div>
+        <div class="s-pill em"><div class="s-pill-label">EM</div><div class="s-pill-count" id="s-in-em">0</div></div>
+      </div>
+      <div class="score-box" id="score-box-in">
+        <div class="score-left">
+          <div class="score-label">Avg Score</div>
+          <div class="score-rating" id="score-rating-in">—</div>
+          <div class="score-scale" id="score-scale-in">Check boxes to calculate</div>
+        </div>
+        <div class="score-num" id="score-num-in">—</div>
+      </div>
+    </div>
+    <div class="summary-card re">
+      <div class="summary-card-title">🎯 Results</div>
+      <div class="summary-pills">
+        <div class="s-pill ee"><div class="s-pill-label">EE</div><div class="s-pill-count" id="s-re-ee">0</div></div>
+        <div class="s-pill ae"><div class="s-pill-label">AE</div><div class="s-pill-count" id="s-re-ae">0</div></div>
+        <div class="s-pill em"><div class="s-pill-label">EM</div><div class="s-pill-count" id="s-re-em">0</div></div>
+      </div>
+      <div class="score-box" id="score-box-re">
+        <div class="score-left">
+          <div class="score-label">Avg Score</div>
+          <div class="score-rating" id="score-rating-re">—</div>
+          <div class="score-scale" id="score-scale-re">Check boxes to calculate</div>
+        </div>
+        <div class="score-num" id="score-num-re">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+    <div class="tab-nav">
+      <button class="tab-btn active-tw" id="tab-tw" onclick="setTab('tw')">🤝 Teamwork</button>
+      <button class="tab-btn" id="tab-in" onclick="setTab('in')">💡 Innovation</button>
+      <button class="tab-btn" id="tab-re" onclick="setTab('re')">🎯 Results</button>
+    </div>
+    <button class="btn btn-reset" onclick="resetAll()">↺ Reset All</button>
+  </div>
+
+  <div id="panel-tw" class="tab-panel visible"></div>
+  <div id="panel-in" class="tab-panel"></div>
+  <div id="panel-re" class="tab-panel"></div>
+
+  <div class="footer" id="footer-text">Confidential · Internal Use Only</div>
+</div>
+
+<script>
+const DATA = {
+  manager: {
+    tw: {
+      ee: ["Seeks out peers and team members to create an environment to safely give and receive advice, guidance, and feedback, fostering a culture of open communication and trust.","Serves as a strong advisor to peers in store, proactively identifying and nurturing their individual strengths. Provides feedback to Senior Manager and SL regularly.","Is a role model for Coaching behaviors. Able to demonstrate strong Coaching at Apple for peers and offer feedback to peers working to improve skills, connecting their development to team and company objectives.","Able to effectively present and provide input on Market calls and is often called upon to do so.","Proven track record of developing others toward promotions, including demonstrating ability to develop beyond the S2 level.","Works with Senior Manager to help influence strategies for the team experience and customer journey that produce strong results.","Takes time to consider team perspectives and effectively communicates through the decision making process."],
+      ae: ["Collaborates across departments to support the full team's success.","Consistently provides coaching feedback using the Coach Connections tool. Meets the expectation of providing a Coach Connection every 31 days, using these connections to identify individual strengths and development opportunities.","Uses company resources such as Exchange Journal and Coaching at Apple to develop their team further.","Motivates and inspires through downloads or presentations, providing recognition in the moment and formally through Apple's resources, connecting individual contributions to the team's overall goals.","Drives a culture of growth and development utilizing Apple's tools around Improving Performance, creating a safe environment for open communication.","Demonstrates self-knowledge, takes action on feedback from supervisors and peers. Is open to feedback and consistently seeks out feedback in an effort to develop self.","Communicates openly, listens to different perspectives, and delivers reliable results while creating a supportive environment. Exemplifies inclusive leadership by fostering a culture of belonging in all aspects of the employee life cycle.","Builds trust and manages team complexity effectively by addressing team concerns with urgency through listening, taking action and following up."],
+      em: ["Does not consistently collaborate across departments to support the full team's success.","Does not consistently provide coaching feedback using the Coach Connections tool or meet the expectation of providing a Coach Connection every 31 days.","Struggles to identify strengths and recognize great performance.","Does not consistently use company resources such as Exchange Journal and Coaching at Apple to develop their team.","Does not consistently motivate and inspire through downloads or presentations, or connect individual contributions to the team's overall goals.","Does not consistently drive a culture of growth and development utilizing Apple's tools around Improving Performance, and struggles to create a safe environment for open communication.","Does not consistently demonstrate self-knowledge or take action on feedback from supervisors and peers. Not consistently open to feedback.","Does not consistently think and lead inclusively or support company I&D initiatives. Fails to foster a culture of belonging in all aspects of the employee life cycle.","Does not consistently build trust or manage team complexity effectively, or address team concerns with urgency."]
+    },
+    in: {
+      ee: ["Finds opportunities to help solve problems and create strategy with peers and Senior Managers, fostering a culture of experimentation and open dialogue.","Takes smart risks using a mix of analysis and intuition, consistently bringing ideas to the table.","Champions GRS Guidance including Downloads, Leader Digest and Monthly Training Guidance.","Seeks opportunities to implement new processes and approaches to support strong results.","Can take a good idea and build upon it to make it great.","Anticipates the need to adapt personal and leadership styles to create buy-in and quick action, inspiring team members to confidently embrace new challenges.","Known for creating innovative ways to inspire results — active in brainstorming sessions among leaders and can bring ideas to practice by actively supporting the development of team member expertise.","Invites perspectives outside of standard voices."],
+      ae: ["Is able to support, confidently represent, and meet goals of Apple's key priorities, and facilitates team discussions to explore new approaches.","Creates a supportive environment where team members feel comfortable taking calculated risks and trying new things.","Demonstrates proficiency in Apple systems and consistently upholds operational excellence (CRM, GBI Portal, Tableau, Hello, Scheduling, Orchard, etc).","Uses calendar and other tools to effectively plan time, ensuring balance of time is spent in FOH.","Proficiently executes GRS Guidance including Downloads, Leader Digest and Monthly Training Guidance.","Actively uses peers and team members as resources to collaborate and execute store strategy achieving company goals.","Adapts well to different situations, flexing communication style and approach to meet unique circumstances in the moment.","Is a subject matter expert within their Experience area, able to inform leaders on progress and drive excellence in assigned area of responsibility, while encouraging team members to expand their knowledge and skills."],
+      em: ["Does not consistently create opportunities for the team to openly share and develop new ideas, which impacts their ability to confidently support Apple's key priorities.","Does not consistently demonstrate proficiency in Apple systems or uphold operational excellence (CRM, GBI Portal, Tableau, Hello, Scheduling, Orchard, etc).","Does not consistently use calendar and other tools to effectively plan time, ensuring balance of time is spent in FOH.","Does not consistently execute GRS Guidance including Downloads, Leader Digest and Monthly Training Guidance.","Does not consistently engage peers and team members as resources to collaborate and execute store strategy achieving company goals.","Does not consistently adapt well to different situations, flexing communication style and approach to meet unique circumstances in the moment.","Is not consistently a subject matter expert within their Experience area, nor able to inform leaders on progress and drive excellence in assigned area of responsibility.","Misses opportunities to create an environment where team members feel encouraged to take risks, share bold ideas, or try new approaches. Provides limited support for developing new skills or deepening expertise."]
+    },
+    re: {
+      ee: ["Proactively exceeds performance metrics by executing creative strategies and providing exceptional team development and leadership.","Anticipates potential obstacles to achieving results and strategically prioritizes tasks to ensure all goals and objectives are not only met but often surpassed ahead of schedule.","Anticipates potential operational bottlenecks and addresses them before they impact team performance, while also optimizing resources for efficiency.","Consistently models and champions Apple's values of diversity and inclusion, as well as a culture of feedback, proactively creating an environment where all team members feel valued and empowered.","Utilizes their team's aspirations and unique strengths and proactively takes steps to develop talent where opportunities are identified, ensuring their team goes beyond standard service to create unique and memorable experiences that strengthen customer loyalty and brand advocacy.","Has a proven track record of leading team results that exceed company expectations by addressing gaps in performance and recognizing team achievements with clear and specific behaviors and examples."],
+      ae: ["Consistently leads their team to fulfill individual performance goals through effective communication, coaching, and initiates interactions that invite dialogue, open communication, and proactive feedback.","Consistently meets deadlines for goals and objectives by effectively managing time and resources, ensuring team alignment and helping the team to focus and simplify.","Consistently makes decisions that align with store goals, policies, and customer expectations, while effectively managing risks.","Consistently adheres to Apple's values by supporting diversity and inclusion in daily operations and decision-making.","Ensures their team members are developed in areas that allow them to be equipped to provide customers with high-quality service that meets their needs and aligns with Apple's customer service standards.","Continuously achieves Apple's expectations for results and KPIs and provides effective guidance and direction to others for strong execution."],
+      em: ["Does not consistently meet performance targets or execute initiatives due to lack of effective feedback and performance management. Consistently performs lower than others for metrics.","Struggles to lead their team in completing goals and objectives within the designated time frame, often due to poor planning or execution issues, and fails to create a focused, high-performing team.","Makes decisions without fully evaluating the potential impacts or aligning properly with organizational values and policies.","Overlooks opportunities to strengthen team dynamics or consider a broader range of perspectives when making decisions.","Misses opportunities to anticipate and address customer needs creatively, resulting in a standardized experience rather than an exceptional one.","Does not consistently prioritize skill development or growth opportunities for team members. Provides limited feedback or coaching around performance expectations and misses opportunities to prepare talent for future roles.","Does not consistently provide effective guidance and direction to others for strong execution.","Does not consistently achieve Apple's expectations for results and KPIs or provide effective guidance and direction to others for strong execution."]
+    }
+  },
+  senior: {
+    tw: {
+      ee: ["Actively seeks out feedback from team members and partners with Store Leader to think through effective strategies that result in positive growth of store performance and a culture of continuous improvement.","Removes roadblocks and identifies best practices to share across the Market.","Develops clear and tangible Leader Development plans, empowers leaders to take ownership of their growth and development, and builds a deep Leadership pipeline for Apple. Incorporates mobility into Leader developmental plans.","Partners with the Store Leader to implement strategies for the team experience and customer journey that produce strong results. Motivates and inspires teams and connects the team's focus areas to the broader work.","Actively identifies opportunities across the store and Market where feedback can eliminate bias and enable more leaders to engage and lead inclusively.","Champions I&D plan and role models behaviors that create a deeper cultural understanding of what makes Apple, Apple for their team and market.","Proactively partners with the Market Senior Team and Store Leaders to support consistency in fostering a culture of inclusion, from hiring to development to engagement."],
+      ae: ["Actively participates in Store and Market meetings to offer valuable insight and foster open team discussions.","Establishes strategic plans and achieves goals through their manager team.","Improves processes and performance throughout the store.","Proactively leads developmental conversations with Leads and Managers.","Creates a culture of growth and development utilizing Apple's tools around Improving Performance and highlights how team initiatives support the company's overall objectives.","Intentionally builds and fosters trust with the team and leaders; consistently solicits feedback from the team to drive self-awareness and mitigate unconscious bias.","Fulfills Floor Leadership expectations, prioritizing Coach and Coaching Leaders. Meets the current expectation from Apple of providing a Coach Connection to their team every 31 days.","Exemplifies inclusive leadership and ensures that I&D initiatives are brought to life, from hiring to development to engagement, fostering a culture of belonging in all aspects of the employee life cycle."],
+      em: ["Does not consistently and actively participate in Store and Market meetings to offer valuable insight or encourage open dialogue.","Does not consistently establish strategic plans and achieve goals through their manager team.","Does not consistently improve processes and performance throughout the store.","Does not consistently and proactively lead developmental conversations with Leads and Managers and misses opportunities to connect team initiatives to the broader company vision.","Does not consistently create a culture of growth and development utilizing Apple's tools around Improving Performance.","Does not consistently or intentionally build and foster trust with the team and leaders. Struggles to solicit feedback from the team to drive self-awareness and mitigate unconscious bias.","Does not consistently fulfill Floor Leadership expectations or meet the current expectation from Apple of providing a Coach Connection to their team every 31 days.","Does not consistently exemplify inclusive leadership; fails to foster a culture of belonging in all aspects of the employee life cycle or ensure I&D initiatives are brought to life."]
+    },
+    in: {
+      ee: ["Seeks perspective from the Market Leader and GRS Partners to understand the long term vision for business strategies in order to build the most effective strategies.","Acts as a mentor for other Seniors across the Market on how to successfully utilize Apple's development tools to develop talent across the Manager population.","Consistently exceeds KPI expectations across departments by promoting transparency, access to progress and key metrics, and provides inspiration and vision to their teams.","Mentors peers to build their skills on analyzing data and reports to effectively build strategies for the business.","Inspires their team to challenge conventional thinking and explore inventive solutions. Shows agility in finding new ways to deliver great experiences and results for the team and customer across the Market.","Inspires a culture across store and market where all leaders feel empowered to actively innovate and take risks to enhance the experience and results we are responsible to lead."],
+      ae: ["Partners with Store Leader to understand the long term vision for Apple Retail, and implements team discussions and actions to achieve the vision.","Actively coaches Leaders to build skills utilizing Coach Connections, Rating Tool and Exchange Journal.","Ensures success in KPIs across the departments by providing consistent feedback and guidance to the Manager team.","Actively encourages the team to challenge assumptions and explore unique solutions.","Demonstrates strong abilities in business analysis; able to understand reporting and tie it to strategies.","Sees around corners to help the managers and team avoid potential pitfalls regarding the team and customer experience.","Comfortable taking appropriate risks to deliver sustainable and scalable results.","Reaches out to peers across the Market to gain various perspectives, ensuring their ideas are as strong as possible."],
+      em: ["Does not consistently partner with Store Leader to understand the long term vision for the store and market, or implement team discussions or actions to achieve the vision.","Does not consistently or actively coach Leaders to build skills utilizing Coach Connections, Rating Tool and Exchange Journal.","Does not consistently ensure success in KPIs across the departments by providing consistent feedback and guidance to the Manager team.","Misses opportunities to spark creative problem solving, which can limit innovation and reduce momentum toward long-term goals.","Sticks to the tried and tested approach rather than inviting new ideas and taking courageous risks.","Does not consistently demonstrate strong abilities in business analysis or the ability to understand reporting and tie it to actions.","Does not consistently see around corners to help the managers and team avoid potential pitfalls regarding the team and customer experience.","Is not consistently comfortable taking appropriate risks to deliver sustainable and scalable results.","Does not consistently reach out to peers across the Market to gain various perspectives, ensuring their ideas are as strong as possible."]
+    },
+    re: {
+      ee: ["Empowers managers to excel in their roles. Sets clear expectations and provides feedback and guidance, fostering an environment where managers feel confident making decisions that align with organizational goals.","Collaborates with and coaches managers to consistently achieve goals ahead of schedule according to quarterly priorities, while also implementing innovative practices that elevate overall performance.","Makes sound decisions based on Store Leader guidance, personal experience, and input from managers, ensuring decisions are made holistically.","Drives exceptional results by leveraging diversity and inclusion as competitive advantages, and coaching managers around best practices.","Proactively identifies high-potential talent and aligns on tailored development plans to prepare them for future leadership roles within Apple."],
+      ae: ["Effectively assists the Store Leader in leading managers by setting clear goals, ensuring regular communication, and identifying opportunities for leaders to develop their skills.","Provides consistent feedback and support to align AOR objectives to quarterly priorities, and ensures that goals are met according to timelines, while maintaining quality.","Understands Store Leader direction and can translate that to store decisions.","Maintains ethical standards, supports diversity, and models a safe and inclusive workplace aligned with company values.","Actively supports the development of others through coaching, mentorship, and providing opportunities around skills needed for the future."],
+      em: ["Focuses on daily tasks in the moment without seeing the bigger picture and working with leadership to accomplish it. Struggles to provide effective feedback.","Does not consistently produce high quality outcomes for quarterly priorities and fails to meet deadlines due to insufficient collaboration.","Struggles to connect store goals with real time feedback from leaders and causes bottlenecks in executing plans.","Ensures managers are meeting standard business results with minimal emphasis on Apple's values, ethics, and diversity initiatives.","Shows limited focus on providing guidance for growth in role or development towards future roles."]
+    }
+  }
+};
+
+const POINTS = { ee: 3, ae: 2, em: 1 };
+const CRITERIA = ['tw','in','re'];
+const RATINGS  = ['ee','ae','em'];
+const RATING_LABELS = { ee:'Exceeded Expectations', ae:'Achieved Expectations', em:'Expected More' };
+const RATING_DESCS  = { ee:'Consistently performed above the high level expected of the role', ae:'Consistently performed at the high level expected of the role', em:'Did not always perform at the level expected of the role' };
+const SCORE_RANGES = [
+  { min: 2.5,   max: 3.0,   rating: 'ee', label: 'Exceeded Expectations', scale: '2.500 – 3.000' },
+  { min: 1.6,   max: 2.499, rating: 'ae', label: 'Achieved Expectations',  scale: '1.600 – 2.499' },
+  { min: 1.0,   max: 1.599, rating: 'em', label: 'Expected More',          scale: '1.000 – 1.599' },
+];
+
+let currentRole = 'manager';
+let currentTab  = 'tw';
+
+function getRatingFromScore(score) {
+  for (const r of SCORE_RANGES) {
+    if (score >= r.min && score <= r.max) return r;
+  }
+  return null;
+}
+
+function renderPanel(crit) {
+  const panel = document.getElementById(`panel-${crit}`);
+  const roleData = DATA[currentRole][crit];
+  panel.innerHTML = '';
+  RATINGS.forEach(rating => {
+    const items = roleData[rating];
+    const sec = document.createElement('div');
+    sec.className = `section ${rating}`;
+    sec.innerHTML = `
+      <div class="section-header">
+        <div class="section-badge">${rating.toUpperCase()}</div>
+        <div class="section-title">${RATING_LABELS[rating]}</div>
+        <div class="section-desc">${RATING_DESCS[rating]}</div>
+      </div>
+      <div class="section-body" id="body-${crit}-${rating}"></div>
+    `;
+    panel.appendChild(sec);
+    const body = sec.querySelector(`#body-${crit}-${rating}`);
+    items.forEach((text, i) => {
+      const id = `cb-${crit}-${rating}-${i}`;
+      const label = document.createElement('label');
+      label.className = 'check-item';
+      label.htmlFor = id;
+      label.innerHTML = `<input type="checkbox" id="${id}" data-crit="${crit}" data-rating="${rating}"><div class="check-box"></div><div class="check-text">${text}</div>`;
+      body.appendChild(label);
+      label.querySelector('input').addEventListener('change', updateSummary);
+    });
+  });
+}
+
+function renderAll() {
+  CRITERIA.forEach(c => renderPanel(c));
+  updateSummary();
+}
+
+function setTab(tab) {
+  currentTab = tab;
+  CRITERIA.forEach(c => {
+    document.getElementById(`panel-${c}`).classList.toggle('visible', c === tab);
+    const btn = document.getElementById(`tab-${c}`);
+    btn.className = 'tab-btn';
+    if (c === tab) btn.classList.add(`active-${c}`);
+  });
+}
+
+function setRole(role) {
+  currentRole = role;
+  document.getElementById('btn-mgr').className = 'role-btn' + (role==='manager' ? ' active-mgr' : '');
+  document.getElementById('btn-sr').className  = 'role-btn' + (role==='senior'  ? ' active-sr'  : '');
+  renderAll();
+}
+
+function updateSummary() {
+  CRITERIA.forEach(crit => {
+    let totalPoints = 0;
+    let totalChecked = 0;
+    RATINGS.forEach(rating => {
+      const checked = document.querySelectorAll(`input[data-crit="${crit}"][data-rating="${rating}"]:checked`).length;
+      document.getElementById(`s-${crit}-${rating}`).textContent = checked;
+      totalPoints  += checked * POINTS[rating];
+      totalChecked += checked;
+    });
+    const box      = document.getElementById(`score-box-${crit}`);
+    const numEl    = document.getElementById(`score-num-${crit}`);
+    const ratingEl = document.getElementById(`score-rating-${crit}`);
+    const scaleEl  = document.getElementById(`score-scale-${crit}`);
+    if (totalChecked === 0) {
+      box.className = 'score-box';
+      numEl.textContent = '—'; ratingEl.textContent = '—';
+      scaleEl.textContent = 'Check boxes to calculate';
+      return;
+    }
+    const avg = totalPoints / totalChecked;
+    const r   = getRatingFromScore(avg);
+    numEl.textContent    = avg.toFixed(3);
+    ratingEl.textContent = r ? r.label : '—';
+    scaleEl.textContent  = r ? `Range: ${r.scale}` : '';
+    box.className        = `score-box${r ? ` rating-${r.rating}` : ''}`;
+  });
+}
+
+function updateName() {
+  const name = document.getElementById('leaderName').value.trim();
+  document.getElementById('footer-text').textContent =
+    name ? `${name} · Confidential · Internal Use Only` : 'Confidential · Internal Use Only';
+}
+
+function resetAll() {
+  document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+  document.querySelectorAll('.foundation-textarea').forEach(ta => ta.value = '');
+  updateSummary();
+}
+
+renderAll();
+setTab('tw');
+</script>
+</body>
+</html>
